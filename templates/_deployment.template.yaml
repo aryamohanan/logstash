@@ -1,0 +1,144 @@
+apiVersion: apps/v1
+
+kind: StatefulSet
+metadata:
+  name: {{ .Values.deployment.name }}
+  labels:
+    app: {{ .Values.app.name }}
+    environment: [[ .Environment ]]
+    version: {{ .Values.image.tag }}
+    AccountableTeam: Inventory
+spec:
+  selector:
+    matchLabels:
+         app: {{ .Values.app.name }}
+  serviceName: {{ .Values.service.name }}
+  replicas: 1
+  template:
+    metadata:
+      labels:
+          app: {{ .Values.app.name }}
+          environment: [[ .Environment ]]
+          version: {{ .Values.image.tag }}
+          AccountableTeam: Inventory
+    spec:
+      terminationGracePeriodSeconds: 120
+      containers:
+        - name: {{ .Values.container.name }}
+          image: {{ .Values.container.image }}:{{ .Values.image.tag }}
+          imagePullPolicy: Always
+          env:
+            - name: LS_JAVA_OPTS
+              value: "-Xmx20g -Xms10g"
+            - name: containerName
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: imageBuildNumber
+              value: "{{ .Values.image.tag }}"
+            - name: shortHash
+              value: "[[ .Env.ShortHash ]]"
+            - name: KAFKA_SERVER
+              value: "[[.Env.Inventory_k8_kafka_server]]"
+            - name: KAFKA_SECURITY_PROTOCOL
+              value: "[[.Env.Logstash_k8_kafka_security_protocol]]"
+            - name: KAFKA_KEY_PASSWORD
+              value: "[[.Env.Inventory_k8_kafka_client_key]]"
+            - name: K8_ELASTIC_URL
+              value: "[[ .Env.inventory_K8_ElasticHost ]]"
+            - name: K8_ELASTIC_HOST
+              value: "[[ .Env.K8ElasticHost ]]"
+            - name: K8_ELASTIC_USERNAME
+              value: "[[.Env.inventory_K8_SU_ElasticUserName]]"
+            - name: K8_ELASTIC_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: cmp-passwords
+                  key: "InventoryK8SuElasticPassword-[[ .Environment ]]"
+            - name: LOGSTASH_ENVIRONMENT
+              value: "[[ .Env.WorkingEnv ]]"
+            - name: INVENTORY_STOCKORDER_WEBHOOK_URL
+              value: "[[ .Env.stockorder_webhook_url]]"
+            - name: REDIS_CLUSTER_HOST
+              value: "[[.Env.RedisCluster_host]]"
+            - name: REDIS_CLUSTER_USER
+              value: "[[.Env.RedisCluster_user]]"
+            - name: REDIS_CLUSTER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: cmp-passwords
+                  key: "[[.Environment]]-inventory-redis-password"
+            - name: REDIS_HOST
+              value: "[[.Env.cmpinventoryredisservice]]"
+            - name: REDIS_PORT
+              value: "[[.Env.cmpinventoryredisport]]"
+            - name: REDIS_DB
+              value: "[[.Env.inventoryRedisDB]]"
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: cmp-passwords
+                  key: "CmpInventoryRedisPassword-[[.Environment]]"
+            - name: nodeName
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: MSSQL_HOST
+              value: "[[ .Env.InventoryServiceSQLServer ]]"
+            - name: MSSQL_USER
+              value: "[[ .Env.InventoryServiceSQLServerUsername ]]"
+            - name: MSSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                   name: cmp-passwords
+                   key: "[[ .Env.WorkingEnv ]]-inventory-mssql-password"
+            - name: SELECT_BATCH_SIZE
+              value: "10000"
+            - name: TIMER_IN_SECONDS
+              value: "10"
+            - name: IPM_SERVICE_URL
+              value: "[[ .Env.IPMServiceURL ]]"
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "500Mi"
+            limits:
+              cpu: "1000m"
+              memory: "2500Mi"
+          ports:
+            - name: http
+              containerPort: 9600
+          volumeMounts:
+            - name: logstash-data
+              mountPath: "/logstash_data"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 300
+            periodSeconds: 50
+            successThreshold: 1
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 300
+            periodSeconds: 50
+            successThreshold: 1
+            timeoutSeconds: 10
+            failureThreshold: 3
+      imagePullSecrets:
+        - name: regcred
+      securityContext:
+        fsGroup: 1000
+  volumeClaimTemplates:
+    - metadata:
+        name: logstash-data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        storageClassName: rbd-default
+        resources:
+          requests:
+            storage: 1Gi

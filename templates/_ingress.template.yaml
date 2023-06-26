@@ -1,0 +1,19 @@
+# ingress.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: {{ .Values.ingress.name }}
+  labels:
+        environment: [[ .Environment ]]
+        app: {{ .Values.app.name }}
+  annotations:
+    kubernetes.io/ingress.class: traefik
+spec:
+  rules:
+  - host: [[ .Env.LogstashPipelinesApiUrl ]]
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: {{ .Values.service.name }}
+          servicePort: 9600

@@ -1,0 +1,18 @@
+app:
+  name: logstash-pipelines
+  maintainer: cmp-inventory
+  sourceUrl: https://gitlab.kore.korewireless.com/cmp-inventory/logstash-pipelines
+  documentationUrl: https://https://gitlab.kore.korewireless.com/cmp-inventory/logstash-pipelines/blob/staging/README.md
+container:
+  name: logstash-pipelines-container
+  image: harbor.kore.korewireless.com/kore-cmp-inventory/logstash-pipelines
+deployment:
+  name: logstash-pipelines-deployment
+service:
+  name: logstash-pipelines-service
+  port: 9600
+ingress:
+  name: logstash-pipelines-ingress
+hpa:
+  name: logstash-pipelines-hpa
+  

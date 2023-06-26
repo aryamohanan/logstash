@@ -1,0 +1,28 @@
+- pipeline.id: stockorderrequest_pipeline
+  path.config: "/usr/share/logstash/pipeline/StockOrderRequest.conf"
+
+# - pipeline.id: publishImsiMsisdnLastEffectiveDates
+#   path.config: "/usr/share/logstash/pipeline/PublishImsiMsisdnLastEffectiveDates.conf"
+
+# - pipeline.id: orgIdCachePipeline
+#   path.config: "/usr/share/logstash/pipeline/orgIdCachePipeline.conf"
+
+# Publishing last PublishLastActiveProfilePlanAndFeatures 
+# - pipeline.id: publishLastActiveProfilePlanAndFeatures
+#   path.config: "/usr/share/logstash/pipeline/PublishLastActiveProfilePlanAndFeatures.conf"
+
+# Compare published Kafka messages against the ipreservation table and force update if necessary 
+- pipeline.id: forceUpdateSimNumbersNotPublishedToRadius
+  path.config: "/usr/share/logstash/pipeline/forceUpdateSimNumbersNotPublishedToRadius.conf"
+
+- pipeline.id: SubscriptionRequest_pipeline
+  path.config: "/usr/share/logstash/pipeline/SubscriptionRequest_pipeline.conf"
+
+# - pipeline.id: PublishStockOrderRequestId_pipeline
+#   path.config: "/usr/share/logstash/pipeline/PublishStockOrderRequestId_DeviceIndex.conf"
+
+# - pipeline.id: ProfileDetails_pipeline
+#   path.config: "/usr/share/logstash/pipeline/profileDetailsCachingPipeline.conf"
+
+- pipeline.id: StockOrderFulfillmentInProgresMonitor
+  path.config: "/usr/share/logstash/pipeline/StockOrderFulfillmentInProgressMonitor.conf"
